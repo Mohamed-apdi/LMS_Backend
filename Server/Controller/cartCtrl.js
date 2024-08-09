@@ -1,29 +1,44 @@
 import Cart from "../Model/CartModel.js";
 import asyncHandler from "express-async-handler";
-
-
+import Course from "../Model/CourseModel.js"
+import { validateMongoDbId } from "../Utils/mongoDbId.js";
 
 // create cart object
 export const addToCart = asyncHandler(async (req, res) => {
-    const { userId, courseId, price } = req.body;
 
+    const { userId, courseId } = req.body;
+    
     try {
-        const cart = await Cart.findOne({user: userId});
-
-        if(cart){
-            cart.courses.push(courseId);
-            cart.totalPrice += price;
-            await cart.save();
-            res.status(200).json(cart);
-        }else{
-            const newCart = new Cart({
-                user: userId,
-                courses: [courseId],
-                totalPrice: price
-            });
-            const createdCart = await newCart.save();
-            res.status(201).json(createdCart);
+        validateMongoDbId(courseId);
+        const course = await Course.findById(courseId);
+        if (!course) {
+        res.status(404).json({ message: 'Course not found' });
+        return;
         }
+
+        let cart = await Cart.findOne({ user: userId });
+
+    if (cart) {
+      const existingCourse = cart.courses.find(item => item.course.toString() === courseId);
+
+      if (existingCourse) {
+        res.status(400).json({ message: 'Course already in cart' });
+        return;
+      }
+
+      cart.courses.push({ course: courseId, price: course.price });
+      cart.totalPrice += course.price;
+      await cart.save();
+    } else {
+      cart = new Cart({
+        user: userId,
+        courses: [{ course: courseId, price: course.price }],
+        totalPrice: course.price
+      });
+
+      await cart.save();
+    }
+    res.status(200).json(cart);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
