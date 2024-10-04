@@ -9,6 +9,7 @@ import { courseRouter } from "./Router/CourseRoute.js";
 import { enrollRoute } from "./Router/EnrollmentRoute.js";
 import { wishlistRouet } from "./Router/WishlistRoute.js";
 import { cartRouter } from "./Router/CartRoute.js";
+import reviewRouter from "./Router/reviewRoute.js";
 
 const app = express();
 const Port = 4040;
@@ -29,6 +30,7 @@ app.use("/api/v1/course", courseRouter);
 app.use("/api/v1/enroll", enrollRoute);
 app.use("/api/v1/wishlist", wishlistRouet);
 app.use("/api/v1/cart", cartRouter);
+app.use("/api/v1/course-review", reviewRouter);
 
 // error handler middleware
 app.use(notFound);
